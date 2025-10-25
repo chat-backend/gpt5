@@ -1,14 +1,17 @@
-// config/db.js (ESM version)
+// db.js (ESM version)
 import mongoose from 'mongoose';
+
+const mongoUri = process.env.MONGO_URL;
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/chatgpt');
-
-    const { host, name } = mongoose.connection;
-    console.log(`✅ Kết nối MongoDB thành công: host=${host}, database=${name}`);
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("✅ MongoDB connected");
   } catch (err) {
-    console.error("❌ Lỗi kết nối MongoDB:", err.message);
+    console.error("❌ Lỗi kết nối MongoDB:", err);
     process.exit(1);
   }
 };
