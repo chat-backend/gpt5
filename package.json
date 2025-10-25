@@ -1,0 +1,57 @@
+{
+  "name": "chat-backend",
+  "version": "1.0.0",
+  "description": "Chat backend với kho tri kiến (tin tức + Wikipedia)",
+  "private": true,
+  "type": "module",
+  "main": "server.js",
+  "exports": {
+    ".": "./server.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "update": "node update.js"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "install": "^0.13.0",
+    "mongoose": "^8.19.2",
+    "node-cron": "^4.2.1",
+    "node-fetch": "^3.3.2",
+    "openai": "^6.3.0",
+    "p-limit": "^7.1.1",
+    "redis": "^5.8.3",
+    "rss-parser": "^3.13.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.0"
+  },
+  "keywords": [
+    "chat",
+    "backend",
+    "news",
+    "wiki",
+    "knowledge-base"
+  ],
+  "author": "Thầy",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "server.js",
+    "routes/",
+    "services/",
+    "utils/",
+    "middleware/"
+  ]
+}

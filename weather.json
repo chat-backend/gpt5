@@ -1,0 +1,9 @@
+{
+  "city": "Hà Nội",
+  "country": "VN",
+  "temperature": 26,
+  "description": "mây rải rác",
+  "humidity": 78,
+  "wind_speed": 3.47,
+  "collectedAt": "2025-10-16T11:00:00.313Z"
+}
