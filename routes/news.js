@@ -1,130 +1,103 @@
 // routes/news.js (ESM version)
 import express from "express";
-import { getNews, TOPIC_KEYWORDS } from "../services/newsService.js";
+import Parser from "rss-parser";
+import fs from "fs/promises";
+import { logger } from "./logger.js";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const dataDir = join(__dirname, "../data");
+const newsFilePath = join(dataDir, "news.json");
+
+const parser = new Parser();
 const router = express.Router();
 
-/**
- * Helper: lọc theo thời gian + phân trang
- */
-function filterAndPaginate(articles, { since, page = 1, pageSize = 20 }) {
-  let filtered = articles;
-
-  // Lọc theo thời gian
-  if (since) {
-    const now = new Date();
-    let cutoff;
-    if (since.endsWith("h")) {
-      const hours = parseInt(since.replace("h", ""), 10);
-      cutoff = new Date(now.getTime() - hours * 60 * 60 * 1000);
-    } else if (since.endsWith("d")) {
-      const days = parseInt(since.replace("d", ""), 10);
-      cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-    }
-    if (cutoff) {
-      filtered = filtered.filter(a => a.publishedAt && new Date(a.publishedAt) >= cutoff);
-    }
-  }
-
-  // Phân trang (giới hạn pageSize tối đa 200)
-  const pageNum = Math.max(parseInt(page, 10) || 1, 1);
-  const sizeNum = Math.min(Math.max(parseInt(pageSize, 10) || 20, 1), 200);
-  const start = (pageNum - 1) * sizeNum;
-  const paged = filtered.slice(start, start + sizeNum);
-
-  return { filtered, paged, pageNum, sizeNum };
+/** Chuẩn hóa item RSS */
+function normalizeItem(source, item) {
+  const publishedRaw = item.isoDate || item.pubDate || null;
+  return {
+    source,
+    title: (item.title || "").trim(),
+    url: (item.link || "").trim(),
+    description: (item.contentSnippet || item.content || "").trim(),
+    publishedAt: publishedRaw ? new Date(publishedRaw).getTime() : Date.now(),
+    guid: item.guid || item.id || item.link || ""
+  };
 }
 
-/**
- * Core handler: dùng chung cho GET và POST
- */
-async function handleNewsRequest(query, { since, page, pageSize, topic }) {
-  let articles = await getNews(query);
-
-  // Lọc theo topic nếu có
-  if (topic) {
-    articles = articles.filter(a => a.topic === topic);
-  }
-
-  return filterAndPaginate(articles, { since, page, pageSize });
+/** Tạo fetcher cho RSS */
+function createRSSFetcher(sourceName, url) {
+  return async function () {
+    try {
+      const feed = await parser.parseURL(url);
+      return feed.items.map(item => normalizeItem(sourceName, item));
+    } catch (err) {
+      console.error(`❌ Lỗi fetch ${sourceName}:`, err.message);
+      return [];
+    }
+  };
 }
 
-/**
- * GET /news?q=...&page=1&pageSize=20&since=24h
- */
-router.get("/", async (req, res) => {
+/** Đọc cache và trả lời dạng văn bản thuần + có đường link */
+export async function readNewsFromFile(limit = 20) {
   try {
-    const { q, page, pageSize, since, topic } = req.query;
-    if (!q) {
-      return res.status(400).json({ success: false, error: "Thiếu query (q)" });
+    const raw = await fs.readFile(newsFilePath, "utf8");
+    const data = JSON.parse(raw);
+    const items = Array.isArray(data) ? data : data.articles;
+
+    if (!items || !items.length) {
+      logger.warn("⚠️ [News] Cache rỗng, không có tin để trả lời.");
+      return { message: "Hiện chưa có tin tức trong cache.", source: "news", error: true };
     }
 
-    const { filtered, paged, pageNum, sizeNum } = await handleNewsRequest(q, { since, page, pageSize, topic });
+    const top = items.slice(0, limit);
 
-    res.json({
-      success: true,
-      source: "news",
-      group: "internal",
-      query: q,
-      total: filtered.length,
-      page: pageNum,
-      pageSize: sizeNum,
-      articles: paged.map(a => ({
-        title: a.title,
-        url: a.url,
-        source: a.source,
-        publishedAt: a.publishedAt || null,
-        topic: a.topic
-      }))
+    logger.info(
+      `📊 [News] Đọc file news.json: tổng ${items.length} tin, bot sẽ trả lời ${top.length} tin.`
+    );
+
+    let text = `📰 Trong 24 giờ qua, có ${top.length} sự kiện nổi bật:\n\n`;
+    top.forEach((item, idx) => {
+      const timeStr = item.publishedAt
+        ? new Date(item.publishedAt).toLocaleString("vi-VN")
+        : "Không rõ thời gian";
+      text += `${idx + 1}. ${item.title}\n`;
+      if (item.description) text += `   ${item.description}\n`;
+      text += `   🕒 ${timeStr}\n`;
+      if (item.url) text += `   🔗 ${item.url}\n\n`;   // 👉 thêm đường link
     });
+
+    return { message: text.trim(), source: "news", error: false };
   } catch (err) {
-    console.error("❌ Lỗi GET /news:", err.message);
-    res.status(500).json({ success: false, error: "Không thể lấy tin tức" });
+    logger.error("❌ Lỗi đọc news.json:", { error: err.message });
+    return { message: "⚠️ Không đọc được dữ liệu tin tức.", source: "news", error: true };
   }
-});
+}
 
-/**
- * POST /news { question: "..." }
- */
-router.post("/", async (req, res) => {
-  try {
-    const { question, since, page, pageSize, topic } = req.body;
-    if (!question) {
-      return res.status(400).json({ success: false, error: "Thiếu câu hỏi" });
-    }
+/** Handler nhanh cho app.js hoặc router */
+export async function newsHandler(limit = 20) {
+  return await readNewsFromFile(limit);
+}
 
-    const { filtered, paged, pageNum, sizeNum } = await handleNewsRequest(question, { since, page, pageSize, topic });
+/* --- Nguồn RSS Việt Nam --- */
+export const fetchVNExpress = createRSSFetcher("VNExpress", "https://vnexpress.net/rss/tin-moi-nhat.rss");
+export const fetchDanTri = createRSSFetcher("DanTri", "https://dantri.com.vn/rss/home.rss");
+export const fetchTuoiTre = createRSSFetcher("TuoiTre", "https://tuoitre.vn/rss/tin-moi-nhat.rss");
+export const fetchThanhNien = createRSSFetcher("ThanhNien", "https://thanhnien.vn/rss/home.rss");
+export const fetchNguoiLaoDong = createRSSFetcher("NguoiLaoDong", "https://nld.com.vn/rss/home.rss");
+export const fetchPhatTuVN = createRSSFetcher("PhatTuVN", "https://www.phattuvietnam.net/feed/");
+export const fetchGoogleNews = createRSSFetcher("GoogleNews", "https://news.google.com/rss?hl=vi&gl=VN&ceid=VN:vi");
 
-    res.json({
-      success: true,
-      source: "news",
-      group: "internal",
-      question,
-      total: filtered.length,
-      page: pageNum,
-      pageSize: sizeNum,
-      articles: paged.map(a => ({
-        title: a.title,
-        url: a.url,
-        source: a.source,
-        publishedAt: a.publishedAt || null,
-        topic: a.topic
-      }))
-    });
-  } catch (err) {
-    console.error("❌ Lỗi POST /news:", err.message);
-    res.status(500).json({ success: false, error: "Không thể xử lý câu hỏi" });
-  }
-});
+export const NEWS_SOURCES = [
+  { name: "VNExpress", fetch: fetchVNExpress },
+  { name: "DanTri", fetch: fetchDanTri },
+  { name: "TuoiTre", fetch: fetchTuoiTre },
+  { name: "ThanhNien", fetch: fetchThanhNien },
+  { name: "NguoiLaoDong", fetch: fetchNguoiLaoDong },
+  { name: "PhatTuVN", fetch: fetchPhatTuVN },
+  { name: "GoogleNews", fetch: fetchGoogleNews },
+    
+];
 
-/**
- * GET /news/topics
- */
-router.get("/topics", (_req, res) => {
-  res.json({
-    success: true,
-    topics: Object.keys(TOPIC_KEYWORDS)
-  });
-});
-
-export default router;

@@ -1,109 +1,106 @@
-// app.js (ESM version, sắp xếp tối ưu)
+// app.js (ESM version)
 import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-
-import indexRouter from "./index.js";
-import messagesRouter from "./routes/messages.js";
-import chatRouter from "./routes/chat.js";
-import countryRouter from "./countryRouter.js";
-import newsRouter from "./routes/news.js";
-import countriesRouter from "./routes/countries.js";
-import weatherRouter from "./routes/weather.js";
-import { requestLogger } from "./middleware/requestLogger.js";
-import { statusRouter } from "./routes/statusRouter.js";
-import { systemMonitor } from "./middleware/systemMonitor.js";
-import { initAutoUpdate } from "./services/cacheService.js";
-import countriesWebRouter from "./routes/countriesWeb.js";
-import { smartAssistant } from "./services/smartAssistant.js";
-import apiRouter from "./routes/api.js";
-import assistantRouter from "./routes/assistant.js";
-import { classifyIntent } from "./services/intentService.js";
-import { answerByIntent } from "./services/qaService.js";
-
-// ✅ Import Knowledge Base
-import { knowledgeBaseRouter, knowledgeBaseMiddleware } from "./services/knowledgeBaseRouter.js";
-
-dotenv.config();
+import fs from "fs/promises";
+import path from "path";
+import cron from "node-cron";
+import axios from "axios";
+import { fileURLToPath } from "url";
+import { EventEmitter } from "events";
+import { newsHandler } from "./routes/news.js";
 
 const app = express();
 
-// --- Middleware chung ---
-app.use(cors({ origin: process.env.ALLOWED_ORIGIN || "*" }));
-app.use(express.json());
-app.use(requestLogger);
-app.use(systemMonitor);
+export const autoUpdateEvents = new EventEmitter();
 
-// --- Knowledge Base middleware (intercept trước AI/chat) ---
-app.use(knowledgeBaseMiddleware);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_DIR = path.join(__dirname, "data");
 
-// --- Routers hệ thống ---
-app.use("/api", apiRouter);
-app.use("/countries-web", countriesWebRouter);
-app.use("/assistant", assistantRouter);
+await fs.mkdir(DATA_DIR, { recursive: true });
 
-// --- Khởi động auto update cache ---
-initAutoUpdate();
-
-// --- Health check ---
-app.get("/health", (_req, res) => res.json({ status: "ok" }));
-app.get("/ping", (_req, res) => res.send("pong"));
-
-// --- Route hỏi–đáp trực tiếp ---
-app.post("/ask", async (req, res) => {
+function nowISO() { return new Date().toISOString(); }
+function logError(context, err) { console.error(`❌ [${context}]`, err?.message || err); }
+async function saveJSON(file, data) {
   try {
-    const { message } = req.body;
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({
-        success: false,
-        error: "Thiếu tham số message",
-        timestamp: new Date().toISOString()
-      });
-    }
-    const intent = classifyIntent(message);
-    const answer = await answerByIntent(intent, message);
-    res.json({ success: true, intent, answer, timestamp: new Date().toISOString() });
-  } catch (err) {
-    console.error("❌ Error in /ask:", err.message);
-    res.status(500).json({ success: false, error: "Internal Server Error", details: err.message });
-  }
-});
+    await fs.writeFile(path.join(DATA_DIR, file), JSON.stringify(data, null, 2), "utf8");
+  } catch (err) { logError(`Ghi file ${file}`, err); }
+}
 
-// --- Route Trợ lý Thông Tuệ ---
-app.post("/smart", async (req, res) => {
+// --- News ---
+export async function updateNews() {
   try {
-    const { message, sessionId } = req.body;
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({ success: false, error: "Thiếu tham số message" });
-    }
-    const result = await smartAssistant(message, sessionId || "default");
-    res.json(result);
+    // Lấy 100 tin mới nhất và lưu vào news.json (theo logic trong newsHandler)
+    const result = await newsHandler(100);
+
+    console.log(`✅ [News] Đã cập nhật ${result.content.split("\n").length - 1} tin`);
+    autoUpdateEvents.emit("newsUpdate", {
+      updatedAt: new Date().toISOString(),
+      count: (result.content.match(/\n/g) || []).length
+    });
+
+    return result;
   } catch (err) {
-    console.error("❌ Error in /smart:", err.message);
-    res.status(500).json({ success: false, error: "Internal Server Error", details: err.message });
+    logError("News - Tổng thể", err);
+    return { source: "news", content: "Hệ thống gặp sự cố khi cập nhật tin tức." };
   }
-});
+}
 
-// --- Gắn các router dữ liệu ---
-app.use("/messages", messagesRouter);
-app.use("/chat", chatRouter); // KB middleware đã chạy trước đó
-app.use("/countries", countriesRouter);
-app.use("/country", countryRouter); // 👈 đổi prefix để tránh trùng
-app.use("/news", newsRouter);
-app.use("/weather", weatherRouter);
-app.use("/kb", knowledgeBaseRouter);
-app.use("/status", statusRouter);
-app.use("/", indexRouter);
+// --- Weather ---
+export async function updateWeather(city = "Hanoi", countryCode = "VN") {
+  try {
+    if (!process.env.OPENWEATHER_API_KEY) throw new Error("Thiếu OPENWEATHER_API_KEY");
+    const res = await axios.get("https://api.openweathermap.org/data/2.5/weather", {
+      params: { q: `${city},${countryCode}`, appid: process.env.OPENWEATHER_API_KEY, units: "metric", lang: "vi" }
+    });
+    const data = res.data;
+    const weather = {
+      city: data.name,
+      country: data.sys?.country,
+      temperature: data.main?.temp,
+      description: data.weather?.[0]?.description,
+      humidity: data.main?.humidity,
+      wind_speed: data.wind?.speed,
+      collectedAt: nowISO()
+    };
+    await saveJSON("weather.json", weather);
+    autoUpdateEvents.emit("weatherUpdate", weather);
+    return weather;
+  } catch (err) { logError("Weather", err); return null; }
+}
 
-// --- Route trang chủ ---
-app.get("/", (_req, res) => {
-  res.send("🚀 Chat backend is running");
-});
+// --- Time ---
+export async function updateTime() {
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh", dateStyle: "full", timeStyle: "long"
+    });
+    const timeData = {
+      datetime: now.toISOString(),
+      timezone: "Asia/Ho_Chi_Minh",
+      formatted: formatter.format(now),
+      collectedAt: nowISO()
+    };
+    await saveJSON("time.json", timeData);
+    autoUpdateEvents.emit("timeUpdate", timeData);
+    return timeData;
+  } catch (err) { logError("Time", err); return null; }
+}
 
-// --- Middleware xử lý lỗi cuối cùng ---
-app.use((err, req, res, _next) => {
-  console.error(`❌ Error at ${req.method} ${req.originalUrl}:`, err.message);
-  res.status(500).json({ error: "Internal Server Error", details: err.message });
-});
+// --- Init & Cron ---
+export async function initAutoUpdate() {
+  console.log("🚀 [AutoUpdate] Khởi động lần đầu...");
+  try {
+    await Promise.all([ updateNews(), updateWeather("Hanoi", "VN"), updateTime() ]);
+    console.log("✅ [AutoUpdate] Hoàn tất lần chạy đầu tiên.");
+    autoUpdateEvents.emit("done");
+  } catch (err) { logError("initAutoUpdate", err); }
+}
+
+export function startCronJobs() {
+  cron.schedule("0 */3 * * *", async () => { try { await updateNews(); } finally { autoUpdateEvents.emit("done"); } });
+  cron.schedule("0 * * * *", async () => { try { await updateWeather("Hanoi", "VN"); } finally { autoUpdateEvents.emit("done"); } });
+  cron.schedule("*/30 * * * *", async () => { try { await updateTime(); } finally { autoUpdateEvents.emit("done"); } });
+}
 
 export default app;

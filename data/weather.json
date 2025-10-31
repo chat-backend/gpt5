@@ -1,9 +1,274 @@
 {
-  "city": "Hà Nội",
-  "country": "VN",
-  "temperature": 21,
-  "description": "mây đen u ám",
-  "humidity": 70,
-  "wind_speed": 2.58,
-  "collectedAt": "2025-10-25T17:33:19.597Z"
+  "An Giang": {
+    "temperature": 26.58,
+    "feels_like": 26.58,
+    "description": "mây đen u ám",
+    "humidity": 89,
+    "wind_speed": 2.78,
+    "collectedAt": "2025-10-31T14:05:24.549Z"
+  },
+  "Bắc Ninh": {
+    "temperature": 21.05,
+    "feels_like": 21.53,
+    "description": "mây đen u ám",
+    "humidity": 89,
+    "wind_speed": 4.78,
+    "collectedAt": "2025-10-31T14:05:25.407Z"
+  },
+  "Cà Mau": {
+    "temperature": 25.11,
+    "feels_like": 26.21,
+    "description": "mây đen u ám",
+    "humidity": 97,
+    "wind_speed": 1.35,
+    "collectedAt": "2025-10-31T14:05:26.273Z"
+  },
+  "Cao Bằng": {
+    "temperature": 20.35,
+    "feels_like": 20.97,
+    "description": "mây đen u ám",
+    "humidity": 97,
+    "wind_speed": 0.53,
+    "collectedAt": "2025-10-31T14:05:27.141Z"
+  },
+  "Đắk Lắk": {
+    "temperature": 21.99,
+    "feels_like": 22.83,
+    "description": "mây đen u ám",
+    "humidity": 99,
+    "wind_speed": 0.54,
+    "collectedAt": "2025-10-31T14:05:28.003Z"
+  },
+  "Điện Biên": {
+    "temperature": 21.42,
+    "feels_like": 22.18,
+    "description": "mây thưa",
+    "humidity": 98,
+    "wind_speed": 1.52,
+    "collectedAt": "2025-10-31T14:05:28.865Z"
+  },
+  "Đồng Nai": {
+    "temperature": 27.8,
+    "feels_like": 32.64,
+    "description": "mây đen u ám",
+    "humidity": 87,
+    "wind_speed": 2.13,
+    "collectedAt": "2025-10-31T14:05:29.720Z"
+  },
+  "Đồng Tháp": {
+    "temperature": 26.48,
+    "feels_like": 26.48,
+    "description": "mây đen u ám",
+    "humidity": 91,
+    "wind_speed": 3.06,
+    "collectedAt": "2025-10-31T14:05:30.580Z"
+  },
+  "Gia Lai": {
+    "temperature": 20.14,
+    "feels_like": 20.77,
+    "description": "mây đen u ám",
+    "humidity": 98,
+    "wind_speed": 2.01,
+    "collectedAt": "2025-10-31T14:05:31.447Z"
+  },
+  "Hà Tĩnh": {
+    "temperature": 23.67,
+    "feels_like": 24.57,
+    "description": "mưa nhẹ",
+    "humidity": 95,
+    "wind_speed": 0.73,
+    "collectedAt": "2025-10-31T14:05:32.310Z"
+  },
+  "Hưng Yên": {
+    "temperature": 21.18,
+    "feels_like": 21.78,
+    "description": "mây đen u ám",
+    "humidity": 93,
+    "wind_speed": 2.72,
+    "collectedAt": "2025-10-31T14:05:33.178Z"
+  },
+  "Khánh Hòa": {
+    "temperature": 26,
+    "feels_like": 26,
+    "description": "mây cụm",
+    "humidity": 89,
+    "wind_speed": 1.99,
+    "collectedAt": "2025-10-31T14:05:34.046Z"
+  },
+  "Lai Châu": {
+    "temperature": 17.02,
+    "feels_like": 17.34,
+    "description": "mây cụm",
+    "humidity": 98,
+    "wind_speed": 1.65,
+    "collectedAt": "2025-10-31T14:05:34.908Z"
+  },
+  "Lâm Đồng": {
+    "temperature": 16.87,
+    "feels_like": 17.17,
+    "description": "mây đen u ám",
+    "humidity": 98,
+    "wind_speed": 0.61,
+    "collectedAt": "2025-10-31T14:05:35.763Z"
+  },
+  "Lạng Sơn": {
+    "temperature": 18.43,
+    "feels_like": 18.89,
+    "description": "mây đen u ám",
+    "humidity": 98,
+    "wind_speed": 2.31,
+    "collectedAt": "2025-10-31T14:05:36.620Z"
+  },
+  "Lào Cai": {
+    "temperature": 22.41,
+    "feels_like": 23.21,
+    "description": "mây đen u ám",
+    "humidity": 96,
+    "wind_speed": 0.86,
+    "collectedAt": "2025-10-31T14:05:37.487Z"
+  },
+  "Nghệ An": {
+    "temperature": 23.45,
+    "feels_like": 24.33,
+    "description": "mây đen u ám",
+    "humidity": 95,
+    "wind_speed": 2.59,
+    "collectedAt": "2025-10-31T14:05:38.350Z"
+  },
+  "Ninh Bình": {
+    "temperature": 21.33,
+    "feels_like": 21.95,
+    "description": "mây đen u ám",
+    "humidity": 93,
+    "wind_speed": 3.31,
+    "collectedAt": "2025-10-31T14:05:39.213Z"
+  },
+  "Phú Thọ": {
+    "temperature": 21.37,
+    "feels_like": 21.91,
+    "description": "mây đen u ám",
+    "humidity": 90,
+    "wind_speed": 1.36,
+    "collectedAt": "2025-10-31T14:05:40.088Z"
+  },
+  "Quảng Ngãi": {
+    "temperature": 24.35,
+    "feels_like": 25.3,
+    "description": "mây đen u ám",
+    "humidity": 94,
+    "wind_speed": 1.4,
+    "collectedAt": "2025-10-31T14:05:40.959Z"
+  },
+  "Quảng Ninh": {
+    "temperature": 23.59,
+    "feels_like": 24.28,
+    "description": "mây đen u ám",
+    "humidity": 87,
+    "wind_speed": 1.64,
+    "collectedAt": "2025-10-31T14:05:41.844Z"
+  },
+  "Quảng Trị": {
+    "temperature": 24.77,
+    "feels_like": 25.81,
+    "description": "mây đen u ám",
+    "humidity": 96,
+    "wind_speed": 1.18,
+    "collectedAt": "2025-10-31T14:05:42.786Z"
+  },
+  "Sơn La": {
+    "temperature": 19.12,
+    "feels_like": 19.54,
+    "description": "mây đen u ám",
+    "humidity": 94,
+    "wind_speed": 1.51,
+    "collectedAt": "2025-10-31T14:05:43.652Z"
+  },
+  "Tây Ninh": {
+    "temperature": 26.46,
+    "feels_like": 26.46,
+    "description": "mây đen u ám",
+    "humidity": 90,
+    "wind_speed": 2.76,
+    "collectedAt": "2025-10-31T14:05:44.512Z"
+  },
+  "Thái Nguyên": {
+    "temperature": 20.82,
+    "feels_like": 21.41,
+    "description": "mây đen u ám",
+    "humidity": 94,
+    "wind_speed": 1.64,
+    "collectedAt": "2025-10-31T14:05:45.378Z"
+  },
+  "Thanh Hóa": {
+    "temperature": 21.69,
+    "feels_like": 22.29,
+    "description": "mây đen u ám",
+    "humidity": 91,
+    "wind_speed": 1.91,
+    "collectedAt": "2025-10-31T14:05:46.248Z"
+  },
+  "TP. Cần Thơ": {
+    "temperature": 24.99,
+    "feels_like": 26.16,
+    "description": "mây rải rác",
+    "humidity": 100,
+    "wind_speed": 1.03,
+    "collectedAt": "2025-10-31T14:05:47.116Z"
+  },
+  "TP. Đà Nẵng": {
+    "temperature": 24.99,
+    "feels_like": 26,
+    "description": "mây cụm",
+    "humidity": 94,
+    "wind_speed": 1.03,
+    "collectedAt": "2025-10-31T14:05:47.983Z"
+  },
+  "TP. Hà Nội": {
+    "temperature": 21,
+    "feels_like": 21.43,
+    "description": "mây đen u ám",
+    "humidity": 87,
+    "wind_speed": 3.38,
+    "collectedAt": "2025-10-31T14:05:48.843Z"
+  },
+  "TP. Hải Phòng": {
+    "temperature": 22.95,
+    "feels_like": 23.76,
+    "description": "mây thưa",
+    "humidity": 94,
+    "wind_speed": 1.54,
+    "collectedAt": "2025-10-31T14:05:49.716Z"
+  },
+  "TP. Hồ Chí Minh": {
+    "temperature": 27.82,
+    "feels_like": 32.24,
+    "description": "mây rải rác",
+    "humidity": 84,
+    "wind_speed": 1.79,
+    "collectedAt": "2025-10-31T14:05:50.880Z"
+  },
+  "TP. Huế": {
+    "temperature": 25.06,
+    "feels_like": 26.23,
+    "description": "mây cụm",
+    "humidity": 100,
+    "wind_speed": 0.51,
+    "collectedAt": "2025-10-31T14:05:51.740Z"
+  },
+  "Tuyên Quang": {
+    "temperature": 21.46,
+    "feels_like": 22.01,
+    "description": "mây đen u ám",
+    "humidity": 90,
+    "wind_speed": 1.03,
+    "collectedAt": "2025-10-31T14:05:52.604Z"
+  },
+  "Vĩnh Long": {
+    "temperature": 26.04,
+    "feels_like": 26.04,
+    "description": "mây đen u ám",
+    "humidity": 94,
+    "wind_speed": 1.77,
+    "collectedAt": "2025-10-31T14:05:53.481Z"
+  }
 }
